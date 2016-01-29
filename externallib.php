@@ -24,6 +24,7 @@
  */
  
  require_once("$CFG->dirroot/user/externallib.php");
+ require_once("$CFG->dirroot/user/profile/lib.php");
  
  class local_extrauserlookups_external extends core_user_external {
      /**
@@ -38,14 +39,15 @@
                 'criteria' => new external_multiple_structure(
                     new external_single_structure(
                         array(
-                            'key' => new external_value(PARAM_ALPHA, 'the user column to search, expected keys (value format) are:
+                            'key' => new external_value(PARAM_TEXT, 'the user column to search, expected keys (value format) are:
                                 "id" (int) matching user id,
                                 "lastname" (string) user last name (Note: you can use % for searching but it may be considerably slower!),
                                 "firstname" (string) user first name (Note: you can use % for searching but it may be considerably slower!),
                                 "idnumber" (string) matching user idnumber,
                                 "username" (string) matching user username (Note: you can use % for searching but it may be considerably slower!),
                                 "email" (string) user email (Note: you can use % for searching but it may be considerably slower!),
-                                "auth" (string) matching user auth plugin'),
+                                "auth" (string) matching user auth plugin,
+                                "custom_field_xxx" (string) match value of user custom profile field named xxx (replace xxx with field name) (Note: using this param may make the lookup considerably slower!)'),
                             'value' => new external_value(PARAM_RAW, 'the value to search')
                         )
                     ), 'the key/value pairs to be considered in user search. Values can not be empty.
@@ -73,6 +75,7 @@
         $params = self::validate_parameters(self::get_users_parameters(),
                 array('criteria' => $criteria));
         // Validate the criteria and retrieve the users.
+        $c = 0;
         $users = array();
         $warnings = array();
         $sqlparams = array();
@@ -80,6 +83,13 @@
         $sqltables = '{user}';
         // Do not retrieve deleted users.
         $sqlwhere = ' deleted = 0';
+        // Get List of custom profile fields
+        $fields = profile_get_custom_fields(true);
+        $customprofilefields = array();
+        foreach ($fields as $field) {
+            $customprofilefields[] = $field->shortname;
+        }
+        
         foreach ($params['criteria'] as $criteriaindex => $criteria) {
             // Check that the criteria has never been used.
             if (array_key_exists($criteria['key'], $usedkeys)) {
@@ -112,17 +122,22 @@
                     $paramtype = PARAM_TEXT;
                     break;
                 default:
-                    // Send back a warning that this search key is not supported in this version.
-                    // This warning will make the function extandable without breaking clients.
-                    $warnings[] = array(
-                        'item' => $criteria['key'],
-                        'warningcode' => 'invalidfieldparameter',
-                        'message' =>
-                            'The search key \'' . $criteria['key'] . '\' is not supported, look at the web service documentation'
-                    );
-                    // Do not add this invalid criteria to the created SQL request.
-                    $invalidcriteria = true;
-                    unset($params['criteria'][$criteriaindex]);
+                    if( substr($criteria['key'],0,14) == 'profile_field_' && in_array(substr($criteria['key'],14,strlen($criteria['key'])), $customprofilefields)) {
+                        $paramtype = PARAM_TEXT;
+                    }
+                    else {
+                        // Send back a warning that this search key is not supported in this version.
+                        // This warning will make the function extandable without breaking clients.
+                        $warnings[] = array(
+                            'item' => $criteria['key'],
+                            'warningcode' => 'invalidfieldparameter',
+                            'message' =>
+                                'The search key \'' . $criteria['key'] . '\' is not supported, look at the web service documentation'
+                        );
+                        // Do not add this invalid criteria to the created SQL request.
+                        $invalidcriteria = true;
+                        unset($params['criteria'][$criteriaindex]);
+                    }
                     break;
             }
             if (!$invalidcriteria) {
@@ -133,7 +148,7 @@
                     case 'id':
                     case 'idnumber':
                     case 'auth':
-                        $sqlwhere .= $criteria['key'] . ' = :' . $criteria['key'];
+                        $sqlwhere .= '{user}.' . $criteria['key'] . ' = :' . $criteria['key'];
                         $sqlparams[$criteria['key']] = $cleanedvalue;
                         break;
                     case 'username':
@@ -144,6 +159,15 @@
                         $sqlparams[$criteria['key']] = $cleanedvalue;
                         break;
                     default:
+                        if( substr($criteria['key'],0,14) == 'profile_field_' && in_array(substr($criteria['key'],14,strlen($criteria['key'])), $customprofilefields)) {
+                            $c++;
+                            $sqltables .= " LEFT JOIN {user_info_data} AS cfdata". $c ." ON {user}.id = cfdata". $c .".userid LEFT JOIN {user_info_field} AS cfield" . $c ." ON cfdata". $c .".fieldid = cfield". $c .".id";
+                            $sqlwhere .= 'cfield'.$c . '.shortname = :cfield'.$c . ' AND cfdata'. $c .'.data = :cfdata'. $c;
+                            $sqlparams['cfield'.$c] = substr($criteria['key'],14,strlen($criteria['key']));
+                            $sqlparams['cfdata'.$c] = $cleanedvalue;
+                            $warnings[] = array('warningcode' => 'customfieldname','message' => 'cfield'.$c ." = ". substr($criteria['key'],14,strlen($criteria['key'])));
+                            $warnings[] = array('warningcode' => 'customfielddata','message' => 'cfdata'.$c ." = ". $cleanedvalue);
+                        }
                         break;
                 }
             }
@@ -156,12 +180,13 @@
         $returnedusers = array();
         foreach ($users as $user) {
             $userdetails = user_get_user_details_courses($user);
+            $customfields = profile_user_record($user->id);
             // Return the user only if all the searched fields are returned.
             // Otherwise it means that the $USER was not allowed to search the returned user.
             if (!empty($userdetails)) {
                 $validuser = true;
                 foreach ($params['criteria'] as $criteria) {
-                    if (empty($userdetails[$criteria['key']])) {
+                    if (substr($criteria['key'],0,14) != 'profile_field_' && empty($userdetails[$criteria['key']])) {
                         $validuser = false;
                     }
                 }
