@@ -23,9 +23,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
  
- require_once("$CFG->libdir/externallib.php");
+ require_once("$CFG->dirroot/user/externallib.php");
  
- class local_extrauserlookups_external extends external_api {
+ class local_extrauserlookups_external extends core_user_external {
      /**
      * Returns description of get_users() parameters.
      *
@@ -131,11 +131,11 @@
                 switch ($criteria['key']) {
                     case 'id':
                     case 'idnumber':
-                    case 'username':
                     case 'auth':
                         $sql .= $criteria['key'] . ' = :' . $criteria['key'];
                         $sqlparams[$criteria['key']] = $cleanedvalue;
                         break;
+                    case 'username':
                     case 'email':
                     case 'lastname':
                     case 'firstname':
