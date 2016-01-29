@@ -25,3 +25,13 @@
  
  defined('MOODLE_INTERNAL') || die;
  
+ $functions = array(
+        'local_extrauserlookups_get_users' => array( // local_PLUGINNAME_FUNCTIONNAME is the name of the web service function that the client will call.                                                                                
+                'classname'   => 'local_extrauserlookups_external', // create this class in local/PLUGINNAME/externallib.php
+                'methodname'  => 'get_users', // implement this function into the above class
+                'classpath'   => 'local/extrauserlookups/externallib.php',
+                'description' => 'Amended user lookup functions',
+                'type'        => 'read', // the value is 'write' if your function does any database change, otherwise it is 'read'.
+                'capabilities'  => 'moodle/user:viewdetails, moodle/user:viewhiddendetails, moodle/course:useremail, moodle/user:update',  // List the capabilities used in the function (missing capabilities are displayed for authorised users and also for manually created tokens in the web interface, this is just informative).
+        )
+);
