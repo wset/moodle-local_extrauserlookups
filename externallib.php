@@ -77,8 +77,9 @@
         $warnings = array();
         $sqlparams = array();
         $usedkeys = array();
+        $sqltables = '{user}';
         // Do not retrieve deleted users.
-        $sql = ' deleted = 0';
+        $sqlwhere = ' deleted = 0';
         foreach ($params['criteria'] as $criteriaindex => $criteria) {
             // Check that the criteria has never been used.
             if (array_key_exists($criteria['key'], $usedkeys)) {
@@ -126,20 +127,20 @@
             }
             if (!$invalidcriteria) {
                 $cleanedvalue = clean_param($criteria['value'], $paramtype);
-                $sql .= ' AND ';
+                $sqlwhere .= ' AND ';
                 // Create the SQL.
                 switch ($criteria['key']) {
                     case 'id':
                     case 'idnumber':
                     case 'auth':
-                        $sql .= $criteria['key'] . ' = :' . $criteria['key'];
+                        $sqlwhere .= $criteria['key'] . ' = :' . $criteria['key'];
                         $sqlparams[$criteria['key']] = $cleanedvalue;
                         break;
                     case 'username':
                     case 'email':
                     case 'lastname':
                     case 'firstname':
-                        $sql .= $DB->sql_like($criteria['key'], ':' . $criteria['key'], false);
+                        $sqlwhere .= $DB->sql_like('{user}.' . $criteria['key'], ':' . $criteria['key'], false);
                         $sqlparams[$criteria['key']] = $cleanedvalue;
                         break;
                     default:
@@ -147,7 +148,10 @@
                 }
             }
         }
-        $users = $DB->get_records_select('user', $sql, $sqlparams, 'id ASC');
+
+        $sql = 'SELECT {user}.* FROM ' . $sqltables . ' WHERE '. $sqlwhere . ' ORDER BY id ASC';
+        
+        $users = $DB->get_records_sql($sql, $sqlparams);
         // Finally retrieve each users information.
         $returnedusers = array();
         foreach ($users as $user) {
