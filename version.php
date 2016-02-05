@@ -22,9 +22,9 @@
  * @copyright  2016 Owen Barritt, Wine & Spirit Education Trust
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
- 
+
  defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016020501;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2016020502;        // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2015051100;        // Requires Moodle 2.9
 $plugin->component = 'local_extrauserlookups'; // Full name of the plugin (used for diagnostics).

@@ -22,10 +22,10 @@
  * @copyright  2016 Owen Barritt, Wine & Spirit Education Trust
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
- 
+
  require_once("$CFG->dirroot/user/externallib.php");
  require_once("$CFG->dirroot/user/profile/lib.php");
- 
+
  class local_extrauserlookups_external extends core_user_external {
      /**
      * Returns description of get_users() parameters.
@@ -89,7 +89,7 @@
         foreach ($fields as $field) {
             $customprofilefields[] = $field->shortname;
         }
-        
+
         foreach ($params['criteria'] as $criteriaindex => $criteria) {
             // Check that the criteria has never been used.
             if (array_key_exists($criteria['key'], $usedkeys)) {
@@ -174,7 +174,7 @@
         }
 
         $sql = 'SELECT {user}.* FROM ' . $sqltables . ' WHERE '. $sqlwhere . ' ORDER BY id ASC';
-        
+
         $users = $DB->get_records_sql($sql, $sqlparams);
         // Finally retrieve each users information.
         $returnedusers = array();
@@ -212,7 +212,7 @@
             )
         );
     }
-    
+
      /**
      * Returns description of method parameters
      *
@@ -316,7 +316,7 @@
             )
         );
     }
-    
+
         /**
      * Create one or more users.
      *
@@ -435,4 +435,136 @@
         );
     }
 
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
+    public static function update_users_parameters() {
+        return new external_function_parameters(
+            array(
+                'users' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id' =>
+                                new external_value(PARAM_INT, 'ID of the user'),
+                            'username' =>
+                                new external_value(PARAM_USERNAME, 'Username policy is defined in Moodle security config.',
+                                    VALUE_OPTIONAL, '', NULL_NOT_ALLOWED),
+                            'password' =>
+                                new external_value(PARAM_RAW, 'Plain text password consisting of any characters', VALUE_OPTIONAL,
+                                    '', NULL_NOT_ALLOWED),
+                            'firstname' =>
+                                new external_value(PARAM_NOTAGS, 'The first name(s) of the user', VALUE_OPTIONAL, '',
+                                    NULL_NOT_ALLOWED),
+                            'lastname' =>
+                                new external_value(PARAM_NOTAGS, 'The family name of the user', VALUE_OPTIONAL),
+                            'email' =>
+                                new external_value(PARAM_EMAIL, 'A valid and unique email address', VALUE_OPTIONAL, '',
+                                    NULL_NOT_ALLOWED),
+                            'auth' =>
+                                new external_value(PARAM_PLUGIN, 'Auth plugins include manual, ldap, imap, etc', VALUE_OPTIONAL, '',
+                                    NULL_NOT_ALLOWED),
+                            'idnumber' =>
+                                new external_value(PARAM_RAW, 'An arbitrary ID code number perhaps from the institution',
+                                    VALUE_OPTIONAL),
+                            'lang' =>
+                                new external_value(PARAM_SAFEDIR, 'Language code such as "en", must exist on server',
+                                    VALUE_OPTIONAL, '', NULL_NOT_ALLOWED),
+                            'calendartype' =>
+                                new external_value(PARAM_PLUGIN, 'Calendar type such as "gregorian", must exist on server',
+                                    VALUE_OPTIONAL, '', NULL_NOT_ALLOWED),
+                            'theme' =>
+                                new external_value(PARAM_PLUGIN, 'Theme name such as "standard", must exist on server',
+                                    VALUE_OPTIONAL),
+                            'timezone' =>
+                                new external_value(PARAM_TIMEZONE, 'Timezone code such as Australia/Perth, or 99 for default',
+                                    VALUE_OPTIONAL),
+                            'mailformat' =>
+                                new external_value(PARAM_INT, 'Mail format code is 0 for plain text, 1 for HTML etc',
+                                    VALUE_OPTIONAL),
+                            'description' =>
+                                new external_value(PARAM_TEXT, 'User profile description, no HTML', VALUE_OPTIONAL),
+                            'city' =>
+                                new external_value(PARAM_NOTAGS, 'Home city of the user', VALUE_OPTIONAL),
+                            'country' =>
+                                new external_value(PARAM_ALPHA, 'Home country code of the user, such as AU or CZ', VALUE_OPTIONAL),
+                            'firstnamephonetic' =>
+                                new external_value(PARAM_NOTAGS, 'The first name(s) phonetically of the user', VALUE_OPTIONAL),
+                            'lastnamephonetic' =>
+                                new external_value(PARAM_NOTAGS, 'The family name phonetically of the user', VALUE_OPTIONAL),
+                            'middlename' =>
+                                new external_value(PARAM_NOTAGS, 'The middle name of the user', VALUE_OPTIONAL),
+                            'alternatename' =>
+                                new external_value(PARAM_NOTAGS, 'The alternate name of the user', VALUE_OPTIONAL),
+                            'customfields' => new external_multiple_structure(
+                                new external_single_structure(
+                                    array(
+                                        'type'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the custom field'),
+                                        'value' => new external_value(PARAM_RAW, 'The value of the custom field')
+                                    )
+                                ), 'User custom fields (also known as user profil fields)', VALUE_OPTIONAL),
+                            'preferences' => new external_multiple_structure(
+                                new external_single_structure(
+                                    array(
+                                        'type'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the preference'),
+                                        'value' => new external_value(PARAM_RAW, 'The value of the preference')
+                                    )
+                                ), 'User preferences', VALUE_OPTIONAL),
+                        )
+                    )
+                )
+            )
+        );
+    }
+    /**
+     * Update users
+     *
+     * @param array $users
+     * @return null
+     * @since Moodle 2.2
+     */
+    public static function update_users($users) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot."/user/lib.php");
+        require_once($CFG->dirroot."/user/profile/lib.php"); // Required for customfields related function.
+        // Ensure the current user is allowed to run this function.
+        $context = context_system::instance();
+        require_capability('moodle/user:update', $context);
+        self::validate_context($context);
+        $params = self::validate_parameters(self::update_users_parameters(), array('users' => $users));
+        $transaction = $DB->start_delegated_transaction();
+        foreach ($params['users'] as $user) {
+            user_update_user($user, true, false);
+            // Update user custom fields.
+            if (!empty($user['customfields'])) {
+                foreach ($user['customfields'] as $customfield) {
+                    // Profile_save_data() saves profile file it's expecting a user with the correct id,
+                    // and custom field to be named profile_field_"shortname".
+                    $user["profile_field_".$customfield['type']] = $customfield['value'];
+                }
+                profile_save_data((object) $user);
+            }
+            // Trigger event.
+            \core\event\user_updated::create_from_userid($user['id'])->trigger();
+            // Preferences.
+            if (!empty($user['preferences'])) {
+                foreach ($user['preferences'] as $preference) {
+                    set_user_preference($preference['type'], $preference['value'], $user['id']);
+                }
+            }
+        }
+        $transaction->allow_commit();
+        return null;
+    }
+    /**
+     * Returns description of method result value
+     *
+     * @return null
+     * @since Moodle 2.2
+     */
+    public static function update_users_returns() {
+        return null;
+    }
  }
