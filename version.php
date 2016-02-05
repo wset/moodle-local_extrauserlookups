@@ -25,6 +25,6 @@
 
  defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016020502;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2016020503;        // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2015051100;        // Requires Moodle 2.9
 $plugin->component = 'local_extrauserlookups'; // Full name of the plugin (used for diagnostics).

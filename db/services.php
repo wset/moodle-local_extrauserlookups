@@ -50,4 +50,12 @@
                 'type'        => 'write', // the value is 'write' if your function does any database change, otherwise it is 'read'.
                 'capabilities'  => 'moodle/user:update',  // List the capabilities used in the function (missing capabilities are displayed for authorised users and also for manually created tokens in the web interface, this is just informative).
         ),
+        'local_extrauserlookups_get_cohorts' => array( // local_PLUGINNAME_FUNCTIONNAME is the name of the web service function that the client will call.
+                'classname'   => 'local_extrauserlookups_cohort_external', // create this class in local/PLUGINNAME/externallib.php
+                'methodname'  => 'get_cohorts', // implement this function into the above class
+                'classpath'   => 'local/extrauserlookups/externallib.php',
+                'description' => 'Amended get cohort function',
+                'type'        => 'read', // the value is 'write' if your function does any database change, otherwise it is 'read'.
+                'capabilities'  => 'moodle/cohort:view',  // List the capabilities used in the function (missing capabilities are displayed for authorised users and also for manually created tokens in the web interface, this is just informative).
+        )
 );

@@ -25,6 +25,7 @@
 
  require_once("$CFG->dirroot/user/externallib.php");
  require_once("$CFG->dirroot/user/profile/lib.php");
+ require_once("$CFG->dirroot/cohort/externallib.php");
 
  class local_extrauserlookups_external extends core_user_external {
      /**
@@ -589,4 +590,74 @@
     public static function update_users_returns() {
         return null;
     }
+ }
+ 
+ class local_extrauserlookups_cohort_external extends core_cohort_external {
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.5
+     */
+    public static function get_cohorts_parameters() {
+        return new external_function_parameters(
+            array(
+                'cohortids' => new external_multiple_structure(new external_value(PARAM_INT, 'Cohort ID')
+                    , 'List of cohort id. A cohort id is an integer.', VALUE_DEFAULT, array()),
+            )
+        );
+    }
+    /**
+     * Get cohorts definition specified by ids
+     *
+     * @param array $cohortids array of cohort ids
+     * @return array of cohort objects (id, courseid, name)
+     * @since Moodle 2.5
+     */
+    public static function get_cohorts($cohortids = array()) {
+        global $DB;
+        $params = self::validate_parameters(self::get_cohorts_parameters(), array('cohortids' => $cohortids));
+        if (empty($cohortids)) {
+            $cohorts = $DB->get_records('cohort');
+        } else {
+            $cohorts = $DB->get_records_list('cohort', 'id', $params['cohortids']);
+        }
+        $cohortsinfo = array();
+        foreach ($cohorts as $cohort) {
+            // Now security checks.
+            $context = context::instance_by_id($cohort->contextid, MUST_EXIST);
+            if ($context->contextlevel != CONTEXT_COURSECAT and $context->contextlevel != CONTEXT_SYSTEM) {
+                throw new invalid_parameter_exception('Invalid context');
+            }
+            self::validate_context($context);
+            if (!has_any_capability(array('moodle/cohort:manage', 'moodle/cohort:view'), $context)) {
+                throw new required_capability_exception($context, 'moodle/cohort:view', 'nopermissions', '');
+            }
+            list($cohort->description, $cohort->descriptionformat) =
+                external_format_text($cohort->description, $cohort->descriptionformat,
+                        $context->id, 'cohort', 'description', $cohort->id);
+            $cohortsinfo[] = (array) $cohort;
+        }
+        return $cohortsinfo;
+    }
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 2.5
+     */
+    public static function get_cohorts_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'id' => new external_value(PARAM_INT, 'ID of the cohort'),
+                    'name' => new external_value(PARAM_RAW, 'cohort name'),
+                    'idnumber' => new external_value(PARAM_RAW, 'cohort idnumber'),
+                    'description' => new external_value(PARAM_RAW, 'cohort description'),
+                    'descriptionformat' => new external_format_value('description'),
+                    'visible' => new external_value(PARAM_BOOL, 'cohort visible'),
+                )
+            )
+        );
+    } 
  }
