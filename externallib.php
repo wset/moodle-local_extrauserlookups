@@ -498,6 +498,28 @@
                                 new external_value(PARAM_NOTAGS, 'The middle name of the user', VALUE_OPTIONAL),
                             'alternatename' =>
                                 new external_value(PARAM_NOTAGS, 'The alternate name of the user', VALUE_OPTIONAL),
+                            'institution' =>
+                                new external_value(PARAM_NOTAGS, 'The instution of the user', VALUE_OPTIONAL),
+                            'department' =>
+                                new external_value(PARAM_NOTAGS, 'The department of the user', VALUE_OPTIONAL),
+                            'skype' =>
+                                new external_value(PARAM_NOTAGS, 'The skype id of the user', VALUE_OPTIONAL),
+                            'msn' =>
+                                new external_value(PARAM_NOTAGS, 'The msn id of the user', VALUE_OPTIONAL),
+                            'aim' =>
+                                new external_value(PARAM_NOTAGS, 'The aim id of the user', VALUE_OPTIONAL),
+                            'yahoo' =>
+                                new external_value(PARAM_NOTAGS, 'The yahoo id of the user', VALUE_OPTIONAL),
+                            'icq' =>
+                                new external_value(PARAM_NOTAGS, 'The icq id of the user', VALUE_OPTIONAL),
+                            'phone1' =>
+                                new external_value(PARAM_NOTAGS, 'The phone 1 of the user', VALUE_OPTIONAL),
+                            'phone2' =>
+                                new external_value(PARAM_NOTAGS, 'The phone 2 of the user', VALUE_OPTIONAL),
+                            'address' =>
+                                new external_value(PARAM_NOTAGS, 'The postal address of the user', VALUE_OPTIONAL),
+                            'url' =>
+                                new external_value(PARAM_NOTAGS, 'The url of the user', VALUE_OPTIONAL),
                             'customfields' => new external_multiple_structure(
                                 new external_single_structure(
                                     array(
