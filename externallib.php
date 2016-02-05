@@ -260,6 +260,42 @@
                             'mailformat' =>
                                 new external_value(PARAM_INT, 'Mail format code is 0 for plain text, 1 for HTML etc',
                                     VALUE_OPTIONAL),
+                            'description' =>
+                                new external_value(PARAM_TEXT, 'User profile description, no HTML', VALUE_OPTIONAL),
+                            'city' =>
+                                new external_value(PARAM_NOTAGS, 'Home city of the user', VALUE_OPTIONAL),
+                            'country' =>
+                                new external_value(PARAM_ALPHA, 'Home country code of the user, such as AU or CZ', VALUE_OPTIONAL),
+                            'firstnamephonetic' =>
+                                new external_value(PARAM_NOTAGS, 'The first name(s) phonetically of the user', VALUE_OPTIONAL),
+                            'lastnamephonetic' =>
+                                new external_value(PARAM_NOTAGS, 'The family name phonetically of the user', VALUE_OPTIONAL),
+                            'middlename' =>
+                                new external_value(PARAM_NOTAGS, 'The middle name of the user', VALUE_OPTIONAL),
+                            'alternatename' =>
+                                new external_value(PARAM_NOTAGS, 'The alternate name of the user', VALUE_OPTIONAL),
+                            'institution' =>
+                                new external_value(PARAM_NOTAGS, 'The instution of the user', VALUE_OPTIONAL),
+                            'department' =>
+                                new external_value(PARAM_NOTAGS, 'The department of the user', VALUE_OPTIONAL),
+                            'skype' =>
+                                new external_value(PARAM_NOTAGS, 'The skype id of the user', VALUE_OPTIONAL),
+                            'msn' =>
+                                new external_value(PARAM_NOTAGS, 'The msn id of the user', VALUE_OPTIONAL),
+                            'aim' =>
+                                new external_value(PARAM_NOTAGS, 'The aim id of the user', VALUE_OPTIONAL),
+                            'yahoo' =>
+                                new external_value(PARAM_NOTAGS, 'The yahoo id of the user', VALUE_OPTIONAL),
+                            'icq' =>
+                                new external_value(PARAM_NOTAGS, 'The icq id of the user', VALUE_OPTIONAL),
+                            'phone1' =>
+                                new external_value(PARAM_NOTAGS, 'The phone 1 of the user', VALUE_OPTIONAL),
+                            'phone2' =>
+                                new external_value(PARAM_NOTAGS, 'The phone 2 of the user', VALUE_OPTIONAL),
+                            'address' =>
+                                new external_value(PARAM_NOTAGS, 'The postal address of the user', VALUE_OPTIONAL),
+                            'url' =>
+                                new external_value(PARAM_NOTAGS, 'The url of the user', VALUE_OPTIONAL),
                             'preferences' => new external_multiple_structure(
                                 new external_single_structure(
                                     array(
