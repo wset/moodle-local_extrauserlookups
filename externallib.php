@@ -377,7 +377,7 @@
             if (!validate_email($user['email'])) {
                 throw new invalid_parameter_exception('Email address is invalid: '.$user['email']);
             } else if (empty($CFG->allowaccountssameemail) &&
-                    $DB->record_exists('user', array('email' => $user['email'], 'mnethostid' => $user['mnethostid']))) {
+                    $DB->record_exists('user', array('email' => $user['email'], 'mnethostid' => $CFG->mnet_localhost_id))) {
                 throw new invalid_parameter_exception('Email address already exists: '.$user['email']);
             }
             // End of user info validation.
